@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include "y.tab.h"
+int yyparse();
 
 /* See https://github.com/fordsfords/safe_atoi */
 #define SAFE_ATOI(a_,l_) do { \
@@ -115,6 +117,20 @@ void parse_cmdline(int argc, char **argv)
 }  /* parse_cmdline */
 
 
+char *direction_str(int direction)
+{
+  switch (direction) {
+    case T_NORTH: return "north";
+    case T_SOUTH: return "south";
+    case T_EAST: return "east";
+    case T_WEST: return "west";
+    case T_UP: return "up";
+    case T_DOWN: return "down";
+  }
+  return "**CODE BUG!!!";
+}  /* direction_str */
+
+
 struct obj_s;
 typedef struct obj_s obj_t;
 struct obj_s {
@@ -130,6 +146,7 @@ struct obj_s {
   char *(* description_short_f)();
   char *(* description_f)();
   int (* totsize_f)();
+  int (* go_f)(int direction);
 };
 
 
@@ -225,6 +242,13 @@ int obj_parkentry63cpw_totsize()
   return tot_size;
 }  /* obj_parkentry63cpw_size */
 
+
+int obj_parkentry63cpw_go(int direction)
+{
+  printf("Can't go %s\n", direction_str(direction));
+  return 0;  /* No movement. */
+}  /* obj_parkentry63cpw_go */
+
 void obj_parkentry63cpw_init()
 {
   obj_parkentry63cpw.my_size = -1;
@@ -233,6 +257,7 @@ void obj_parkentry63cpw_init()
   obj_parkentry63cpw.description_short_f = obj_parkentry63cpw_description_short;
   obj_parkentry63cpw.description_f = obj_parkentry63cpw_description;
   obj_parkentry63cpw.totsize_f = obj_parkentry63cpw_totsize;
+  obj_parkentry63cpw.go_f = obj_parkentry63cpw_go;
 }  /* obj_parkentry63cpw_init */
 
 
@@ -254,6 +279,21 @@ int obj_player_totsize()
   return tot_size;
 }  /* obj_player_size */
 
+
+int obj_player_go(int direction)
+{
+  int move_ok;
+
+  move_ok = obj_player.contained_in->go_f(direction);
+
+  if (move_ok) {
+    printf("%s", obj_player.contained_in->description_f());
+  }
+
+  return move_ok;
+}  /* obj_player_go */
+
+
 void obj_player_init()
 {
   content_add(&obj_parkentry63cpw, &obj_player);
@@ -262,9 +302,17 @@ void obj_player_init()
   obj_player.my_size = 150;
   obj_player.my_capacity = 100;
   obj_player.totsize_f = obj_player_totsize;
+  obj_player.go_f = obj_player_go;
 
   obj_player_state.health = 100;
 }  /* obj_player_init */
+
+
+void obj_player_quit()
+{
+  printf("See ya later!\n");
+  exit(0);
+}  /* obj_player_quit */
 
 
 void init_objects()
@@ -286,6 +334,8 @@ int main(int argc, char **argv)
   printf("%s", player->contained_in->description_f());
   printf("%s", player->contained_in->description_f());
   printf("Size=%d\n", player->contained_in->totsize_f());
+
+  yyparse();
 
   return 0;
 }  /* main */

@@ -19,7 +19,15 @@ CHKCORE() {
 }
 
 
-clang -Wall -g -cl-opt-disable -o adv1 adv1.c ; ASSRT "$? -eq 0"
+rm -f adv1 y.tab.h y.tab.c lex.yy.c
+
+echo "yacc -d adv1.y"
+yacc -d adv1.y; ASSRT "$? -eq 0"
+
+echo "flex adv1.l"
+lex adv1.l; ASSRT "$? -eq 0"
+
+clang -Wall -g -cl-opt-disable -o adv1 adv1.c  y.tab.c lex.yy.c; ASSRT "$? -eq 0"
 
 ulimit -c unlimited
 
