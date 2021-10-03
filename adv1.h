@@ -16,8 +16,38 @@
 extern "C" {
 #endif
 
-int obj_player_go(int direction);
-void obj_player_quit();
+struct obj_s;
+typedef struct obj_s obj_t;
+struct obj_s {
+  obj_t *contained_in;
+  obj_t *first_content;
+  obj_t *next_content;
+  obj_t *prev_content;
+
+  int my_type;  /* T_XXX_TYPE */
+  int my_size;
+  int my_capacity;
+  int my_type_tkn;
+
+  int description_first_time;
+  int health;
+
+  void (* description_full_f)();
+  void (* description_short_f)();
+  void (* description_f)();
+  int (* enter_f)();
+  int (* take_f)();
+  int (* drop_f)();
+  int (* totsize_f)();
+  int (* go_f)(int direction);
+  void (* look_f)();
+};
+
+
+extern obj_t *tkn2obj[T_BAD_TOKEN + 1];
+
+#include "extern_objs.x"
+#include "extern_cmds.x"
 
 #ifdef __cplusplus
 }
