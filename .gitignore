@@ -7,6 +7,8 @@ x.*
 lex.yy.c
 y.tab.c
 y.tab.h
+~*
+.DS_Store
 
 # Executable
 adv1
